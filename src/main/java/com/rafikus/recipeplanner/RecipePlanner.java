@@ -1,6 +1,8 @@
 package com.rafikus.recipeplanner;
 
 import com.mojang.logging.LogUtils;
+import com.rafikus.recipeplanner.gui.OverlayRenderer;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import org.slf4j.Logger;
 
@@ -14,6 +16,12 @@ public class RecipePlanner
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public RecipePlanner() {
-        LOGGER.info("Hello from Recipe Planner!");
+
+        // Register the event bus
+        MinecraftForge.EVENT_BUS.register(this);
+        // Register the client-side event bus
+        MinecraftForge.EVENT_BUS.register(OverlayRenderer.class);
+        LOGGER.info("Hello from Recipe Planner!"
+        );
     }
 }
