@@ -1,11 +1,11 @@
 package com.rafikus.recipeplanner.client.screen;
 
 import com.rafikus.recipeplanner.RecipePlanner;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -15,32 +15,28 @@ public class PlannerScreen extends Screen {
 
     private final int imageWidth, imageHeight;
 
-    private int leftPos, topPos;
+    private double leftPos, topPos;
 
-    public PlannerScreen() {
+    private final ItemStack item;
+
+    private final Screen previousScreen;
+
+    public PlannerScreen(ItemStack item, Screen previousScreen) {
         super(TITLE);
-        this.imageWidth = 176;
-        this.imageHeight = 166;
+        this.minecraft = Minecraft.getInstance();
+        assert this.minecraft.screen != null;
+        this.imageWidth = this.minecraft.screen.width;
+        this.imageHeight = this.minecraft.screen.height;
+        this.item = item;
+        this.previousScreen = previousScreen;
     }
 
     @Override
     protected void init() {
         super.init();
 
-        this.leftPos = (this.width - this.imageWidth) / 2;
-        this.topPos = (this.height - this.imageHeight) / 2;
-
-        if(this.minecraft == null) return;
-
-        addRenderableWidget(
-                Button.builder(
-                        Component.translatable(SCREEN_ID + ".example_button"),
-                        this::handleButtonPress
-                        )
-                        .bounds(leftPos + 8, topPos + 20, 20, 20)
-                        .tooltip(Tooltip.create(TITLE))
-                        .build()
-        );
+        this.leftPos = (double) (this.width - this.imageWidth) / 2;
+        this.topPos = (double) (this.height - this.imageHeight) / 2;
     }
 
     @ParametersAreNonnullByDefault
@@ -48,11 +44,25 @@ public class PlannerScreen extends Screen {
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         this.renderDirtBackground(graphics);
 
+        int leftPos = (int) Math.floor(this.leftPos);
+        int topPos = (int) Math.floor(this.topPos);
+
         super.render(graphics, mouseX, mouseY, partialTicks);
-        graphics.drawString(this.font, TITLE, this.leftPos + 8, this.topPos + 6, 0x404040, false);
+        graphics.drawString(this.font, TITLE, leftPos + 8, topPos + 6, 0x404040, false);
+        graphics.renderItem(item, leftPos + 8, topPos + 20);
     }
 
-    private void handleButtonPress(Button button) {
-        // Handle button press
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int p_94701_, double movedX, double movedY) {
+        this.leftPos += movedX;
+        this.topPos += movedY;
+
+        return super.mouseDragged(mouseX, mouseY, p_94701_, movedX, movedY);
+    }
+
+    @Override
+    public void onClose() {
+        assert minecraft != null;
+        minecraft.setScreen(this.previousScreen);
     }
 }

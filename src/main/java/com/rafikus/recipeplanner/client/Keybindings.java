@@ -14,7 +14,7 @@ public final class Keybindings {
 
     public final KeyMapping openRecipePlanner = new KeyMapping(
             "key."+ RecipePlanner.MODID + ".plan_recipe",
-            KeyConflictContext.IN_GAME,
+            KeyConflictContext.UNIVERSAL,
             InputConstants.getKey(InputConstants.KEY_P, -1),
             CATEGORY
     );
