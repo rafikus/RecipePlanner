@@ -6,7 +6,7 @@ Recipe Planner is a quality-of-life Minecraft mod designed to streamline craftin
 
 ## Features
 
-- **Recipe Visualization**: Automatically generates a tree of all items and recipes needed for crafting a selected item.
+- **Recipe Visualization**: Allows users to generate a tree of all items and recipes needed for crafting a selected item, with the ability to manually choose which recipes to use for each component.
 - **Task Management**: Breaks down recipes into tasks, organizing them in a logical order to ensure prerequisites are completed first.
 - **Crafting Organization**: Helps players manage complex crafting chains with ease.
 
