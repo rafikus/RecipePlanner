@@ -13,6 +13,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ScreenEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -22,10 +23,24 @@ import java.util.Optional;
 @Mod.EventBusSubscriber(modid = RecipePlanner.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class ClientForgeHandler {
 
+    public static int secondsPassed = 0;
+
+    private static int ticks = 0;
+
     @SubscribeEvent
-    public static void clientTick(ScreenEvent.KeyPressed event) {
+    public static void clientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase == TickEvent.Phase.START) {
+            ticks++;
+            if (ticks % 20 == 0) {
+                secondsPassed++;
+                ticks = 0;
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public static void screenKeyPressed(ScreenEvent.KeyPressed event) {
         if (event.getKeyCode() == Keybindings.INSTANCE.openRecipePlanner.getKey().getValue()) {
-            RecipePlanner.LOGGER.info("Key pressed for Recipe Planner");
             if (JEIConfig.runtime == null) {
                 RecipePlanner.LOGGER.error("JEI runtime is null");
                 return;
@@ -37,8 +52,6 @@ public class ClientForgeHandler {
                 RecipePlanner.LOGGER.error("Screen is null");
                 return;
             }
-
-            RecipePlanner.LOGGER.info("Client tick with player and JEI Test");
 
             Optional<ItemStack> recipesGUIItem = JEIConfig.runtime
                     .getRecipesGui()
@@ -68,8 +81,6 @@ public class ClientForgeHandler {
     }
 
     private static void doSomethingWithItem(ItemStack item) {
-        RecipePlanner.LOGGER.info("Ingredient: {}x{}", item.getCount(), item.getDisplayName().getString());
-
         Minecraft.getInstance().setScreen(new PlannerScreen(item, Minecraft.getInstance().screen));
     }
 }
