@@ -6,7 +6,7 @@ Recipe Planner is a quality-of-life Minecraft mod designed to streamline craftin
 
 ## Features
 
-- **Recipe Visualization**: Allows users to generate a tree of all items and recipes needed for crafting a selected item, with the ability to manually choose which recipes to use for each component.
+- **Recipe Visualization**: Allows users to generate a tree of all items and recipes needed for crafting a selected item, with the ability to manually choose which recipes to use for each component. The mod relies on the functionality of Just Enough Items (JEI), such as the Items Overlay, to make it easy for players to pick items
 - **Task Management**: Breaks down recipes into tasks, organizing them in a logical order to ensure prerequisites are completed first.
 - **Crafting Organization**: Helps players manage complex crafting chains with ease.
 
