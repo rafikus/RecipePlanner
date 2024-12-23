@@ -37,6 +37,7 @@ Recipe Planner is a quality-of-life Minecraft mod designed to streamline craftin
 
 - Minecraft Version: 1.20.1
 - Forge Version: 47.3.0
+- Just Enough Items (JEI) Version: 15.20.0.105
 
 ## Contributing
 
