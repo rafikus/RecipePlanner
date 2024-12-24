@@ -4,6 +4,7 @@ import com.rafikus.recipeplanner.RecipePlanner;
 import com.rafikus.recipeplanner.client.Keybindings;
 import com.rafikus.recipeplanner.client.screen.PlannerScreen;
 import com.rafikus.recipeplanner.jei.JEIConfig;
+import com.rafikus.recipeplanner.utils.MethodCollection;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.ingredients.ITypedIngredient;
 import mezz.jei.api.runtime.IClickableIngredient;
@@ -23,16 +24,19 @@ import java.util.Optional;
 @Mod.EventBusSubscriber(modid = RecipePlanner.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class ClientForgeHandler {
 
-    public static int secondsPassed = 0;
-
+    private static final MethodCollection methodCollection = new MethodCollection();
     private static int ticks = 0;
+
+    public static void registerMethod(Runnable method) {
+        methodCollection.addMethod(method);
+    }
 
     @SubscribeEvent
     public static void clientTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.START) {
             ticks++;
             if (ticks % 20 == 0) {
-                secondsPassed++;
+                methodCollection.runMethods();
                 ticks = 0;
             }
         }
