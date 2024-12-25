@@ -12,7 +12,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 
@@ -28,6 +30,7 @@ public class RecipeWidget extends AbstractWidget {
 
     private final List<IRecipeLayoutDrawable<?>> recipes;
 
+    private final IJeiHelpers jeiHelpers;
     private final IFocusFactory focusFactory;
     private final IRecipeManager recipeManager;
 
@@ -42,7 +45,7 @@ public class RecipeWidget extends AbstractWidget {
 
         // Found this solution on discord
         // https://discord.com/channels/358816755646332941/358816756149518336/1242319861401653301
-        IJeiHelpers jeiHelpers = JEIConfig.runtime.getJeiHelpers();
+        this.jeiHelpers = JEIConfig.runtime.getJeiHelpers();
         this.focusFactory = jeiHelpers.getFocusFactory();
         this.recipeManager = JEIConfig.runtime.getRecipeManager();
 
@@ -99,10 +102,25 @@ public class RecipeWidget extends AbstractWidget {
         int nextY = y + yPad + padding;
 
         for (IRecipeLayoutDrawable<?> recipe : recipes) {
+
+            Object recipe1 = recipe.getRecipe();
+
             recipe.drawRecipe(graphics, mouseX, mouseY);
             recipe.drawOverlays(graphics, mouseX, mouseY);
             assert minecraft.screen != null;
             recipe.setPosition(x + xPad - recipe.getRectWithBorder().getWidth() / 2,  nextY);
+
+            if (recipe1 instanceof IJeiAnvilRecipe anvilRecipe) {
+                RecipePlanner.LOGGER.info("Anvil Recipe: " + anvilRecipe.getOutputs());
+            } else {
+                Item item = ((Recipe<?>) recipe1)
+                        .getResultItem(RegistryAccess.EMPTY)
+                        .getItem();
+                jeiHelpers.getGuiHelper().createDrawableItemLike(
+                                item)
+                        .draw(graphics, recipe.getRectWithBorder().getX() - 20, nextY - 8);
+            }
+
             nextY += padding + recipe.getRectWithBorder().getHeight();
             if (time > 1) {
                 time = 0;
