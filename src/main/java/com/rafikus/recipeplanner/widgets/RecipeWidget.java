@@ -1,20 +1,19 @@
 package com.rafikus.recipeplanner.widgets;
 
 import com.rafikus.recipeplanner.RecipePlanner;
-import com.rafikus.recipeplanner.client.handler.ClientForgeHandler;
 import com.rafikus.recipeplanner.jei.JEIConfig;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayoutDrawable;
 import mezz.jei.api.helpers.IJeiHelpers;
 import mezz.jei.api.recipe.*;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import mezz.jei.api.recipe.vanilla.IJeiAnvilRecipe;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -22,7 +21,8 @@ import java.util.*;
 import java.util.stream.Stream;
 
 public class RecipeWidget extends AbstractWidget {
-    private final int x, y;
+    private int x, y;
+    private final int xPad, yPad;
 
     private final Minecraft minecraft;
 
@@ -31,10 +31,12 @@ public class RecipeWidget extends AbstractWidget {
     private final IFocusFactory focusFactory;
     private final IRecipeManager recipeManager;
 
-    public RecipeWidget(int x, int y, int width, int height, ItemStack item) {
-        super(x, y, width, height, Component.translatable("widget." + RecipePlanner.MODID + ".recipe"));
-        this.x = x;
-        this.y = y;
+    public RecipeWidget(int globalX, int globalY, int x, int y, ItemStack item) {
+        super(x, y, 0, 0, Component.translatable("widget." + RecipePlanner.MODID + ".recipe"));
+        this.x = globalX;
+        this.y = globalY;
+        this.xPad = x;
+        this.yPad = y;
         this.minecraft = Minecraft.getInstance();
         this.recipes = new ArrayList<>();
 
@@ -49,38 +51,63 @@ public class RecipeWidget extends AbstractWidget {
         focus.add(recipeItem);
 
         Stream<IRecipeCategory<?>> recipeCategoryStream = recipeManager.createRecipeCategoryLookup().limitFocus(focus).get();
-        recipeCategoryStream.forEach(c -> {
-            Stream<?> list = recipeManager.createRecipeLookup(c.getRecipeType()).limitFocus(focus).get();
+        recipeCategoryStream.forEach(recipeCategory -> {
+            Stream<?> list = recipeManager.createRecipeLookup(recipeCategory.getRecipeType()).limitFocus(focus).get();
             list.forEach(recipe -> {
-                if (recipe instanceof CraftingRecipe craftingRecipe) {
-                    assert minecraft.screen != null;
-                    try {
+                assert minecraft.screen != null;
+                try {
+                    if (recipe instanceof IJeiAnvilRecipe anvilRecipe) {
                         //noinspection unchecked
-                        Optional<IRecipeLayoutDrawable<Recipe<?>>> recipeLayoutDrawable = this.recipeManager
+                        Optional<IRecipeLayoutDrawable<IJeiAnvilRecipe>> recipeLayoutDrawable = this.recipeManager
                                 .createRecipeLayoutDrawable(
-                                        (IRecipeCategory<Recipe<?>>) c,
-                                        craftingRecipe,
+                                        (IRecipeCategory<IJeiAnvilRecipe>) recipeCategory,
+                                        anvilRecipe,
                                         focusFactory.createFocusGroup(focus));
-                        recipeLayoutDrawable.ifPresent(r -> {
-                            recipes.add(r);
-                            ClientForgeHandler.registerMethod(r::tick);
-                        });
 
-                    } catch (Exception e) {
-                        RecipePlanner.LOGGER.error(e.getMessage());
+                        recipeLayoutDrawable.ifPresent(recipes::add);
+                        return;
                     }
+                    //noinspection unchecked
+                    Optional<IRecipeLayoutDrawable<Recipe<?>>> recipeLayoutDrawable = this.recipeManager
+                            .createRecipeLayoutDrawable(
+                                    (IRecipeCategory<Recipe<?>>) recipeCategory,
+                                    (Recipe<?>) recipe,
+                                    focusFactory.createFocusGroup(focus));
+
+                    recipeLayoutDrawable.ifPresent(recipes::add);
+
+                } catch (Exception e) {
+                    RecipePlanner.LOGGER.error(e.getMessage());
                 }
             });
         });
     }
 
+    public void updatePosition(double x, double y) {
+        this.x = (int) Math.floor(x);
+        this.y = (int) Math.floor(y);
+    }
+
+    private float time = 0;
+
     @ParametersAreNonnullByDefault
     @Override
     protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        time += partialTicks;
+
+        final int padding = 12;
+        int nextY = y + yPad + padding;
+
         for (IRecipeLayoutDrawable<?> recipe : recipes) {
             recipe.drawRecipe(graphics, mouseX, mouseY);
+            recipe.drawOverlays(graphics, mouseX, mouseY);
             assert minecraft.screen != null;
-            recipe.setPosition(x + minecraft.screen.width / 2 - recipe.getRect().getWidth() / 2, y + minecraft.screen.height / 2 - recipe.getRect().getHeight() / 2);
+            recipe.setPosition(x + xPad - recipe.getRectWithBorder().getWidth() / 2,  nextY);
+            nextY += padding + recipe.getRectWithBorder().getHeight();
+            if (time > 1) {
+                time = 0;
+                recipe.tick();
+            }
         }
     }
 

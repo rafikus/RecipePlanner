@@ -4,7 +4,6 @@ import com.rafikus.recipeplanner.RecipePlanner;
 import com.rafikus.recipeplanner.client.Keybindings;
 import com.rafikus.recipeplanner.client.screen.PlannerScreen;
 import com.rafikus.recipeplanner.jei.JEIConfig;
-import com.rafikus.recipeplanner.utils.MethodCollection;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.ingredients.ITypedIngredient;
 import mezz.jei.api.runtime.IClickableIngredient;
@@ -14,7 +13,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ScreenEvent;
-import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -23,24 +21,6 @@ import java.util.Optional;
 
 @Mod.EventBusSubscriber(modid = RecipePlanner.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class ClientForgeHandler {
-
-    private static final MethodCollection methodCollection = new MethodCollection();
-    private static int ticks = 0;
-
-    public static void registerMethod(Runnable method) {
-        methodCollection.addMethod(method);
-    }
-
-    @SubscribeEvent
-    public static void clientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.START) {
-            ticks++;
-            if (ticks % 20 == 0) {
-                methodCollection.runMethods();
-                ticks = 0;
-            }
-        }
-    }
 
     @SubscribeEvent
     public static void screenKeyPressed(ScreenEvent.KeyPressed event) {
@@ -73,6 +53,7 @@ public class ClientForgeHandler {
                 ClientForgeHandler.doSomethingWithItem(item);
             }
 
+            @SuppressWarnings("removal")
             List<Optional<ItemStack>> screenItems = JEIConfig.runtime.getScreenHelper()
                     .getClickableIngredientUnderMouse(screen, mouseHandler.xpos(), mouseHandler.ypos())
                     .map(IClickableIngredient::getTypedIngredient)
