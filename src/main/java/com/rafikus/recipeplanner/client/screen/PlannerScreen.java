@@ -4,6 +4,7 @@ import com.rafikus.recipeplanner.RecipePlanner;
 import com.rafikus.recipeplanner.widgets.RecipeWidget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -32,6 +33,19 @@ public class PlannerScreen extends Screen {
         this.height = this.minecraft.screen.height;
         this.item = item;
         this.previousScreen = previousScreen;
+
+        addRenderableWidget(Button
+                .builder(
+                        Component.translatable("gui." + RecipePlanner.MODID + ".button.center"),
+                        button -> setPos(0, 0))
+                .pos(
+                        this.width - 50,
+                        this.height - 20)
+                .size(
+                        50,
+                        20)
+                .build());
+
     }
 
     @Override
@@ -56,12 +70,15 @@ public class PlannerScreen extends Screen {
         super.render(graphics, mouseX, mouseY, partialTicks);
     }
 
+    private void setPos(double x, double y) {
+        this.x = x;
+        this.y = y;
+        widgets.forEach(widget -> widget.updatePosition(this.x, this.y));
+    }
+
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int p_94701_, double movedX, double movedY) {
-        this.x += movedX;
-        this.y += movedY;
-
-        widgets.forEach(widget -> widget.updatePosition(this.x, this.y));
+        setPos(this.x + movedX, this.y + movedY);
 
         return super.mouseDragged(mouseX, mouseY, p_94701_, movedX, movedY);
     }
