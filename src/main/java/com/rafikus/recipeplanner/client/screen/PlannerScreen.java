@@ -60,7 +60,11 @@ public class PlannerScreen extends Screen {
 
         widgets.add(new RecipeWidget(x, y, x + this.width / 2, y + 10, item));
 
-        widgets.forEach(this::addRenderableWidget);
+        widgets.forEach(widget -> {
+            addRenderableWidget(widget);
+            widget.getButtons().forEach(this::addRenderableWidget);
+        });
+
     }
 
     @ParametersAreNonnullByDefault
